@@ -1,67 +1,101 @@
-# Importing necessary libraries
+# Import necessary libraries
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 
-# Step 1: Load the dataset
-# Replace 'your_dataset.csv' with your actual dataset file name
-try:
-    dataset = pd.read_csv('your_dataset.csv')
-    print("Dataset loaded successfully!")
-except FileNotFoundError:
-    print("Error: Dataset file not found.")
-    exit()
+# Enable inline plotting for Jupyter Notebook
+%matplotlib inline
 
-# Step 2: Data exploration
-print("\n--- Dataset Overview ---")
-print(dataset.head())  # Display the first 5 rows
-print("\n--- Dataset Info ---")
-print(dataset.info())  # Display column data types and non-null counts
-print("\n--- Dataset Summary Statistics ---")
-print(dataset.describe())  # Display basic statistics
+# Task 1: Load and Explore the Dataset
+def load_dataset(filename):
+    """
+    Load a CSV dataset, handle errors, and inspect the data.
+    """
+    try:
+        # Load the dataset
+        df = pd.read_csv(filename)
+        print("\nDataset Loaded Successfully!\n")
+        
+        # Display first few rows
+        print("First 5 rows of the dataset:")
+        print(df.head())
 
-# Step 3: Basic data analysis
-# Example: Group data by a specific column (e.g., 'Category') and calculate total sales
-if 'Category' in dataset.columns and 'Sales' in dataset.columns:
-    category_sales = dataset.groupby('Category')['Sales'].sum()
-    print("\n--- Total Sales by Category ---")
-    print(category_sales)
+        # Display data info
+        print("\nDataset Information:")
+        print(df.info())
 
-# Step 4: Visualizations
-# Example 1: Bar chart of total sales by category
-if 'Category' in dataset.columns and 'Sales' in dataset.columns:
-    category_sales.plot(kind='bar', color='skyblue', figsize=(8, 5))
-    plt.title('Total Sales by Category')
-    plt.xlabel('Category')
-    plt.ylabel('Total Sales')
-    plt.xticks(rotation=45)
-    plt.tight_layout()
+        # Check for missing values
+        print("\nMissing Values in Dataset:")
+        print(df.isnull().sum())
+
+        # Clean dataset by dropping rows with missing values
+        df_cleaned = df.dropna()
+        print("\nMissing values removed (if any).")
+        
+        return df_cleaned
+    
+    except FileNotFoundError:
+        print("Error: File not found. Please check the filename and try again.")
+    except pd.errors.EmptyDataError:
+        print("Error: The file is empty.")
+    except pd.errors.ParserError:
+        print("Error: The file could not be parsed.")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+
+# Load the dataset
+filename = "iris.csv"  # Change this to your dataset file
+df = load_dataset(filename)
+
+# Task 2: Basic Data Analysis
+if df is not None:
+    print("\nBasic Statistics:")
+    print(df.describe())  # Summary statistics
+
+    # Perform groupings (Example: Group by species and compute mean petal length)
+    if "species" in df.columns:
+        print("\nAverage values per species:")
+        print(df.groupby("species").mean())
+
+# Task 3: Data Visualization
+if df is not None:
+    # Set plot style
+    sns.set_style("whitegrid")
+
+    # Line Chart (Example: Sepal Length over index)
+    plt.figure(figsize=(8, 5))
+    plt.plot(df.index, df["sepal_length"], label="Sepal Length", color="b")
+    plt.xlabel("Index")
+    plt.ylabel("Sepal Length")
+    plt.title("Line Chart: Sepal Length Trend")
+    plt.legend()
     plt.show()
 
-# Example 2: Histogram of a numerical column (e.g., 'Sales')
-if 'Sales' in dataset.columns:
-    dataset['Sales'].plot(kind='hist', bins=10, color='orange', edgecolor='black', figsize=(8, 5))
-    plt.title('Distribution of Sales')
-    plt.xlabel('Sales')
-    plt.ylabel('Frequency')
-    plt.tight_layout()
+    # Bar Chart (Example: Average Sepal Length by Species)
+    if "species" in df.columns:
+        plt.figure(figsize=(8, 5))
+        df.groupby("species")["sepal_length"].mean().plot(kind="bar", color=["blue", "green", "red"])
+        plt.xlabel("Species")
+        plt.ylabel("Average Sepal Length")
+        plt.title("Bar Chart: Sepal Length by Species")
+        plt.xticks(rotation=45)
+        plt.show()
+
+    # Histogram (Example: Sepal Length Distribution)
+    plt.figure(figsize=(8, 5))
+    plt.hist(df["sepal_length"], bins=10, color="purple", alpha=0.7)
+    plt.xlabel("Sepal Length")
+    plt.ylabel("Frequency")
+    plt.title("Histogram: Sepal Length Distribution")
     plt.show()
 
-# Example 3: Line plot of sales over time (if a 'Date' column exists)
-if 'Date' in dataset.columns and 'Sales' in dataset.columns:
-    dataset['Date'] = pd.to_datetime(dataset['Date'])  # Convert to datetime format
-    sales_over_time = dataset.groupby('Date')['Sales'].sum()
-    sales_over_time.plot(kind='line', figsize=(10, 6), marker='o', color='green')
-    plt.title('Sales Over Time')
-    plt.xlabel('Date')
-    plt.ylabel('Total Sales')
-    plt.grid()
-    plt.tight_layout()
+    # Scatter Plot (Example: Sepal Length vs. Petal Length)
+    plt.figure(figsize=(8, 5))
+    sns.scatterplot(x=df["sepal_length"], y=df["petal_length"], hue=df["species"], palette="Set1")
+    plt.xlabel("Sepal Length")
+    plt.ylabel("Petal Length")
+    plt.title("Scatter Plot: Sepal Length vs Petal Length")
+    plt.legend()
     plt.show()
 
-# Step 5: Findings/Observations
-# Print observations
-print("\n--- Observations ---")
-if 'Category' in dataset.columns and 'Sales' in dataset.columns:
-    print(f"The category with the highest total sales is: {category_sales.idxmax()} with sales of {category_sales.max():.2f}.")
-if 'Sales' in dataset.columns:
-    print(f"The average sales amount is: {dataset['Sales'].mean():.2f}.")
+    print("\nAnalysis Completed! 🎉")
